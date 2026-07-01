@@ -102,4 +102,3 @@ python evaluate_traces.py
 - `GenAI_SampleConversations_Traces/` contains the 10 public development traces.
 - `retriever.py` builds a FAISS index over sentence-transformer embeddings.
 - `main.py` validates every returned recommendation against `catalog.json` before responding.
-
