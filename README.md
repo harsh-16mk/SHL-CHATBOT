@@ -48,6 +48,34 @@ python -m uvicorn main:app --reload
 
 Open `http://127.0.0.1:8000/docs` to try the API.
 
+## Deploy To Railway
+
+This repo includes Railway config in `railway.json`.
+
+1. Push the `Chatbot` folder to GitHub.
+2. In Railway, create a new project and choose **Deploy from GitHub repo**.
+3. Select this repo. If this project is in a monorepo, set the service root directory to `Chatbot`.
+4. Add this Railway variable:
+
+```text
+GEMINI_API_KEY=your_key_here
+```
+
+5. Deploy, then open the service **Settings > Networking** and click **Generate Domain**.
+6. Verify the deployment:
+
+```powershell
+curl https://your-railway-domain.up.railway.app/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+The first deploy or restart can take longer because the app warms up the local FAISS retriever and downloads the SentenceTransformer model. The Railway health check timeout is set to 300 seconds for that startup path.
+
 ## Test And Evaluate
 
 Syntax check without calling Gemini:
