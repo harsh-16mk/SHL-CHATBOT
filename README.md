@@ -1,105 +1,193 @@
 # SHL Assessment Recommender API
 
-FastAPI service for the SHL conversational assessment recommender take-home. The API is stateless: each `/chat` request sends the full conversation history, and the service returns the next assistant reply plus a structured shortlist when it has enough information.
+A conversational AI-powered assessment recommendation system developed for the **SHL GenAI Internship Assignment**.
 
-## Endpoints
+The application uses **Google Gemini 2.0 Flash** together with **Retrieval-Augmented Generation (RAG)** using **Sentence Transformers** and **FAISS** to recommend relevant SHL assessments based on user requirements.
 
-- `GET /health` returns `{"status": "ok"}`.
-- `POST /chat` accepts:
+---
+
+# Features
+
+- Conversational AI assessment recommender
+- Asks clarifying questions when user input is incomplete
+- Semantic search using FAISS and Sentence Transformers
+- Grounded recommendations using SHL assessment catalog
+- Assessment comparison based on catalog evidence
+- Stateless conversation API
+- FastAPI backend
+- Interactive Swagger API documentation
+- Railway deployment
+
+---
+
+# Tech Stack
+
+- Python
+- FastAPI
+- Google Gemini 2.0 Flash
+- Sentence Transformers (all-MiniLM-L6-v2)
+- FAISS
+- Pydantic
+- Uvicorn
+
+---
+
+# Project Structure
+
+```text
+.
+|-- main.py
+|-- retriever.py
+|-- catalog.json
+|-- evaluate_traces.py
+|-- requirements.txt
+|-- README.md
+`-- GenAI_SampleConversations_Traces/
+```
+
+---
+
+# Local Setup
+
+## Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+```
+
+## Run the application
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Swagger documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Live Deployment
+
+**Base URL**
+
+```text
+https://shl-chatbot-production-0a32.up.railway.app
+```
+
+**Swagger Documentation**
+
+```text
+https://shl-chatbot-production-0a32.up.railway.app/docs
+```
+
+**Health Endpoint**
+
+```text
+GET https://shl-chatbot-production-0a32.up.railway.app/health
+```
+
+---
+
+# API Endpoints
+
+## Health Check
+
+```text
+GET /health
+```
+
+Response
+
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
+## Chat
+
+```text
+POST /chat
+```
+
+Example Request
 
 ```json
 {
   "messages": [
-    {"role": "user", "content": "I need tests for a senior Java developer with Spring experience."}
+    {
+      "role": "user",
+      "content": "Recommend an assessment for a Java Developer with 3 years of experience."
+    }
   ]
 }
 ```
 
-Response shape:
+---
 
-```json
-{
-  "reply": "Got it. Here is a catalog-grounded shortlist.",
-  "recommendations": [
-    {"name": "Core Java (Advanced Level) (New)", "url": "https://www.shl.com/products/product-catalog/view/core-java-advanced-level-new/", "test_type": "K"}
-  ],
-  "end_of_conversation": false
-}
-```
+# Retrieval Pipeline
 
-## Setup
+1. User submits a query.
+2. The query is converted into embeddings using Sentence Transformers.
+3. FAISS retrieves the most relevant SHL assessments.
+4. Retrieved assessments are supplied as context to Gemini.
+5. Gemini generates grounded recommendations.
+6. The API returns the final response.
 
-```powershell
-cd C:\Users\LENOVO\Desktop\Chatbot
-pip install -r requirements.txt
-```
+---
 
-Create a `.env` file with:
+# Evaluation
 
-```text
-GEMINI_API_KEY=your_key_here
-```
+The system was evaluated using:
 
-## Run Locally
+- `evaluate_traces.py`
+- Sample conversation traces
+- Retrieval quality
+- Recommendation relevance
+- Groundedness against the SHL catalog
+- Overall response accuracy
 
-```powershell
-python -m uvicorn main:app --reload
-```
+---
 
-Open `http://127.0.0.1:8000/docs` to try the API.
+# LLM Used
 
-## Deploy To Railway
+**Google Gemini 2.0 Flash**
 
-This repo includes Railway config in `railway.json`.
+---
 
-1. Push the `Chatbot` folder to GitHub.
-2. In Railway, create a new project and choose **Deploy from GitHub repo**.
-3. Select this repo. If this project is in a monorepo, set the service root directory to `Chatbot`.
-4. Add these Railway variables:
+# Deployment
 
-```text
-GEMINI_API_KEY=your_key_here
-MISE_PYTHON_GITHUB_ATTESTATIONS=false
-```
+Hosted on **Railway**
 
-5. Deploy, then open the service **Settings > Networking** and click **Generate Domain**.
-6. Verify the deployment:
+API Documentation:
 
-```powershell
-curl https://your-railway-domain.up.railway.app/health
-```
+https://shl-chatbot-production-0a32.up.railway.app/docs
 
-Expected response:
+Health Endpoint:
 
-```json
-{"status":"ok"}
-```
+https://shl-chatbot-production-0a32.up.railway.app/health
 
-The `/health` endpoint starts quickly. The SentenceTransformer + FAISS retriever initializes lazily on the first `/chat` request, so that first chat request can take longer than later requests.
+---
 
-## Test And Evaluate
+# Author
 
-Syntax check without calling Gemini:
-
-```powershell
-python -m py_compile main.py retriever.py test_agent.py evaluate_traces.py
-```
-
-Behavior tests, which call `/chat` and may consume Gemini quota:
-
-```powershell
-python -m pytest test_agent.py -v -s
-```
-
-Public trace Recall@10 evaluation, also quota-consuming:
-
-```powershell
-python evaluate_traces.py
-```
-
-## Notes
-
-- `catalog.json` is the local SHL product catalog used for grounding.
-- `GenAI_SampleConversations_Traces/` contains the 10 public development traces.
-- `retriever.py` builds a FAISS index over sentence-transformer embeddings.
-- `main.py` validates every returned recommendation against `catalog.json` before responding.
+**Harsh**
