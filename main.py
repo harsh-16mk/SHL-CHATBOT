@@ -795,11 +795,6 @@ async def call_gemini(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[main] Startup complete. Retriever will initialize on first /chat request.")
-    yield
-    print("[main] Shutting down.")
-    return
-
     """Warm up the retriever (model + FAISS index) on startup."""
     print("[main] Warming up retriever...")
     retriever = get_retriever()
