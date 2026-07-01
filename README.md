@@ -48,6 +48,42 @@ python -m uvicorn main:app --reload
 
 Open `http://127.0.0.1:8000/docs` to try the API.
 
+## Deploy To Render
+
+This repo includes Render Blueprint config in `render.yaml`.
+
+1. Push this repo to GitHub.
+2. In Render, create a new **Blueprint** from the repo, or create a **Web Service** manually.
+3. If using a manual Web Service, use:
+
+```text
+Language: Python
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+Health Check Path: /health
+```
+
+4. Add these Render environment variables:
+
+```text
+PYTHON_VERSION=3.11.9
+GEMINI_API_KEY=your_key_here
+```
+
+5. Deploy, then verify:
+
+```powershell
+curl https://your-service-name.onrender.com/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+The `/health` endpoint starts quickly. The SentenceTransformer + FAISS retriever initializes lazily on the first `/chat` request, so that first chat request can take longer than later requests.
+
 ## Deploy To Railway
 
 This repo includes Railway config in `railway.json`.
@@ -74,7 +110,7 @@ Expected response:
 {"status":"ok"}
 ```
 
-The first deploy or restart can take longer because the app warms up the local FAISS retriever and downloads the SentenceTransformer model. The Railway health check timeout is set to 300 seconds for that startup path.
+The first `/chat` request can take longer because the app initializes the local FAISS retriever and downloads the SentenceTransformer model lazily.
 
 ## Test And Evaluate
 
@@ -102,4 +138,3 @@ python evaluate_traces.py
 - `GenAI_SampleConversations_Traces/` contains the 10 public development traces.
 - `retriever.py` builds a FAISS index over sentence-transformer embeddings.
 - `main.py` validates every returned recommendation against `catalog.json` before responding.
-
